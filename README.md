@@ -64,3 +64,9 @@ Update the version number in `package.json` and:
 yarn build
 npm publish
 ```
+
+## Diagnose issues in the service
+
+```sh
+sudo journalctl -b -u hue-proxy.service
+```

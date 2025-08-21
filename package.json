@@ -1,6 +1,6 @@
 {
   "name": "hue-proxy",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Proxying hue sensors for more secure and flexible automation.",
   "repository": "https://github.com/justin-caldicott/hue-proxy",
   "author": "Justin Caldicott",

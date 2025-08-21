@@ -70,15 +70,16 @@ const server = http.createServer((req, res) => {
     })
     req.on('end', async () => {
       body = body.trim()
-      const val = body.length > 0 ? JSON.parse(body) : undefined
-      const valueParseResult = postSensorValueSchema.safeParse(val)
-      if (!valueParseResult.success) {
-        res.writeHead(400)
-        res.end('')
+      const valueParseResult = postSensorValueSchema.safeParse(
+        body.length > 0 ? JSON.parse(body) : undefined
+      )
+      let value = true
+      if (valueParseResult.success) {
+        value = valueParseResult.data ?? true
+      } else {
         console.warn(
-          `Invalid body for sensor value. Should be empty, true or false.`
+          `Invalid body for sensor value. Should be empty, true or false. Falling back to true. Was: ${body}`
         )
-        return
       }
 
       const virtualSensorsByName = await getVirtualSensorsByName()
@@ -93,7 +94,7 @@ const server = http.createServer((req, res) => {
 
       await updateSensorState({
         sensorId: sensor.id,
-        value: valueParseResult.data ?? true,
+        value,
       })
       res.writeHead(200)
       res.end()
