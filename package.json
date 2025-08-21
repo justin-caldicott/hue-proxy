@@ -1,0 +1,38 @@
+{
+  "name": "hue-proxy",
+  "version": "0.1.0",
+  "description": "Proxying hue sensors for more secure and flexible automation.",
+  "repository": "https://github.com/justin-caldicott/hue-proxy",
+  "author": "Justin Caldicott",
+  "license": "MIT",
+  "bin": {
+    "hue-proxy": "dist/hue-proxy.js"
+  },
+  "scripts": {
+    "build": "tsc && chmod +x dist/hue-proxy-launch.js && npm pack",
+    "start": "ts-node src/hue-proxy.ts start",
+    "do": "ts-node src/hue-proxy.ts",
+    "put:config": "curl -H 'apikey: '\"$GATEWAY_APIKEY\"'' -X PUT --data-binary @../pi/hue-proxy.yml http://localhost:14202/config"
+  },
+  "devDependencies": {
+    "@types/fs-extra": "^9.0.11",
+    "@types/json-stable-stringify": "^1.0.36",
+    "@types/pluralize": "0.0.29",
+    "@types/ws": "^8.5.10",
+    "prettier": "^2.2.1",
+    "ts-node": "^10.9.1",
+    "typescript": "^4.2.4"
+  },
+  "dependencies": {
+    "@types/auto-launch": "^5.0.5",
+    "commander": "^11.1.0",
+    "fs-extra": "^9.1.0",
+    "got": "^11.8.2",
+    "json-stable-stringify": "^1.0.1",
+    "param-case": "^3.0.4",
+    "pluralize": "^8.0.0",
+    "ws": "^8.15.0",
+    "yaml": "^2.3.4",
+    "zod": "^3.22.4"
+  }
+}
