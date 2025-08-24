@@ -14,6 +14,8 @@ const getSensorName = ({ name, type }: { name: string; type: string }) =>
 const putConfig = async (configYaml: string) => {
   const config = configSchema.pick({ sensors: true }).parse(parse(configYaml))
 
+  invalidateSensors() // Sensors may have changed, e.g. may have removed a virtual sensor to include via hue-proxy
+
   const virtualSensorsByName = await getVirtualSensorsByName()
   const existingVirtualSensorFullNames = new Set(
     Object.values(virtualSensorsByName).map(s => getSensorName(s))
@@ -26,7 +28,7 @@ const putConfig = async (configYaml: string) => {
     await createSensor(sensor)
     console.log(`created virtual sensor ${getSensorName(sensor)}`)
   }
-  invalidateSensors()
+  invalidateSensors() // New sensors may have been created
 
   updateConfig({ ...getConfig(), ...config })
 }
