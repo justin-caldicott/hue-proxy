@@ -9,15 +9,13 @@ Default port of 14202 is not configurable currently.
 ### Pre-requisites
 
 - yarn: `npm i -g yarn`
+- optional to allow deployment: set `HUE_PROXY_DEPLOY_TARGET=<user@host-to-deploy-to-via-ssh>`
 
 ### Installation
 
-Currently, the package is not published to npm. So first make a tgz package:
+Currently, the package is not published to npm. You can package as a tgz and deploy to a remote host via ssh using this script:
 
-- `yarn build`
-- copy the package to the target machine, e.g. using `scp`
-- ssh to the target machine
-- `sudo npm install -g path-to-tgz-file`
+- `yarn deploy`
 
 #### Soon, once published to npm
 

@@ -1,6 +1,6 @@
 {
   "name": "hue-proxy",
-  "version": "0.1.1",
+  "version": "0.1.0",
   "description": "Proxying hue sensors for more secure and flexible automation.",
   "repository": "https://github.com/justin-caldicott/hue-proxy",
   "author": "Justin Caldicott",
@@ -10,6 +10,7 @@
   },
   "scripts": {
     "build": "tsc && chmod +x dist/hue-proxy-launch.js && npm pack",
+    "deploy": "yarn build && scp hue-proxy-0.1.0.tgz $HUE_PROXY_DEPLOY_TARGET:~/hue-proxy-0.1.0.tgz && ssh $HUE_PROXY_DEPLOY_TARGET -t 'sudo npm install -g ~/hue-proxy-0.1.0.tgz'",
     "start": "ts-node src/hue-proxy.ts start",
     "do": "ts-node src/hue-proxy.ts",
     "put:config": "curl -H 'apikey: '\"$GATEWAY_APIKEY\"'' -X PUT --data-binary @../pi/hue-proxy.yml http://localhost:14202/config"
