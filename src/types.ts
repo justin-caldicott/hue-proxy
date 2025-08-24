@@ -51,20 +51,24 @@ const genericStatusStateSchema = baseSensorStateSchema.merge(
   })
 )
 
+export const clipGenericFlagSchema = baseSensorSchema.merge(
+  z.object({
+    type: z.literal('CLIPGenericFlag'),
+    state: genericFlagStateSchema,
+  })
+)
+
+export const clipGenericStatusSchema = baseSensorSchema.merge(
+  z.object({
+    type: z.literal('CLIPGenericStatus'),
+    state: genericStatusStateSchema,
+  })
+)
+
 export const getSensorSchema = z.union([
   z.discriminatedUnion('type', [
-    baseSensorSchema.merge(
-      z.object({
-        type: z.literal('CLIPGenericFlag'),
-        state: genericFlagStateSchema,
-      })
-    ),
-    baseSensorSchema.merge(
-      z.object({
-        type: z.literal('CLIPGenericStatus'),
-        state: genericStatusStateSchema,
-      })
-    ),
+    clipGenericFlagSchema,
+    clipGenericStatusSchema,
   ]),
   baseSensorSchema.merge(
     z.object({

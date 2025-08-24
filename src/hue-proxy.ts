@@ -4,6 +4,7 @@ import { Command } from 'commander'
 import { getConfig, updateConfig } from './config'
 import { registration } from './registration'
 import { startApi } from './api'
+import { getApiKey } from './api-key'
 
 // TODO: Ideally have hue-proxy.ts called index.ts and hue-proxy-launch.ts as just launch.ts
 
@@ -22,19 +23,26 @@ program
       return
     }
     startApi()
-  }) // TODO: It's async
+  })
 
 program
   .command('register')
   .description('register a background service with API')
   .action(async options => {
     await registration({ action: 'register' })
-  }) // TODO: It's async
+  })
 
 program
   .command('unregister')
   .description('unregister the background service with API')
-  .action(options => registration({ action: 'unregister' })) // TODO: It's async
+  .action(options => registration({ action: 'unregister' }))
+
+program
+  .command('apikey')
+  .description('manage the apikey for the proxy')
+  .command('show')
+  .description('Show the proxy apikey to be provided in all api calls')
+  .action(options => console.log(`Proxy apikey: ${getApiKey()}`))
 
 // TODO: Consider this being managed via the API
 const gateway = program

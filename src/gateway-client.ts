@@ -1,6 +1,11 @@
 import got from 'got'
 import { getConfig as c } from './config'
-import { deconzConfigSchema, sensorsResponseSchema } from './types'
+import {
+  clipGenericFlagSchema,
+  deconzConfigSchema,
+  getSensorSchema,
+  sensorsResponseSchema,
+} from './types'
 
 export const getConfig = async () => {
   const response = await got.get(
@@ -33,6 +38,16 @@ export const createSensor = async ({
       uniqueid: `hue-proxy::sensor::${name}`,
     }),
   })
+}
+
+export const getSensorState = async ({ sensorId }: { sensorId: string }) => {
+  const response = await got.get(
+    `${c().gatewayUrl}/api/${c().gatewayApiKey}/sensors/${sensorId}`
+  )
+
+  const sensor = clipGenericFlagSchema.parse(JSON.parse(response.body))
+
+  return sensor.state.flag
 }
 
 export const updateSensorState = async ({

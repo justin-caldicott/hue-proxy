@@ -3,10 +3,16 @@ import { parse } from 'yaml'
 import { getConfig, updateConfig } from './config'
 import { configSchema, postSensorValueSchema } from './types'
 import { getVirtualSensorsByName, invalidateSensors } from './virtual-sensors'
-import { createSensor, updateSensorState } from './gateway-client'
+import {
+  createSensor,
+  getSensorState,
+  updateSensorState,
+} from './gateway-client'
+import { getApiKey } from './api-key'
 
 const host = '0.0.0.0'
 const port = 14202
+const apiKey = getApiKey()
 
 const getSensorName = ({ name, type }: { name: string; type: string }) =>
   `/${type}/${name}`
@@ -33,57 +39,78 @@ const putConfig = async (configYaml: string) => {
   updateConfig({ ...getConfig(), ...config })
 }
 
-const server = http.createServer((req, res) => {
-  const { gatewayApiKey } = getConfig()
-  const url = req.url
+const server = http.createServer(async (req, res) => {
+  try {
+    const url = req.url
 
-  if (!url) {
-    res.writeHead(400)
-    res.end('')
-    console.warn(`Request with no URL`)
-    return
-  }
+    if (!url) {
+      res.writeHead(400)
+      res.end('')
+      console.warn(`Request with no URL`)
+      return
+    }
 
-  // TODO: Separate auth mechanism
-  if (req.headers['apikey'] !== gatewayApiKey) {
-    res.writeHead(401)
-    res.end('')
-    console.warn(`Rejected request to unrecognised apikey`)
-    return
-  }
+    if (req.headers['apikey'] !== apiKey) {
+      res.writeHead(401)
+      res.end('')
+      console.warn(`Rejected request to unrecognised apikey`)
+      return
+    }
 
-  if (req.method === 'PUT' && url === '/config') {
-    let body = ''
-    req.on('data', chunk => {
-      body += chunk
-    })
-    req.on('end', async () => {
-      await putConfig(body)
-      res.writeHead(200)
-      res.end()
-    })
-    return
-  }
+    if (req.method === 'PUT' && url === '/config') {
+      let body = ''
+      req.on('data', chunk => {
+        body += chunk
+      })
+      req.on('end', async () => {
+        await putConfig(body)
+        res.writeHead(200)
+        res.end()
+      })
+      return
+    }
 
-  if (req.method === 'POST' && url.startsWith('/sensors')) {
-    let body = ''
-    req.on('data', chunk => {
-      body += chunk
-    })
-    req.on('end', async () => {
-      body = body.trim()
-      const valueParseResult = postSensorValueSchema.safeParse(
-        body.length > 0 ? JSON.parse(body) : undefined
-      )
-      let value = true
-      if (valueParseResult.success) {
-        value = valueParseResult.data ?? true
-      } else {
-        console.warn(
-          `Invalid body for sensor value. Should be empty, true or false. Falling back to true. Was: ${body}`
+    if (req.method === 'POST' && url.startsWith('/sensors')) {
+      let body = ''
+      req.on('data', chunk => {
+        body += chunk
+      })
+      req.on('end', async () => {
+        body = body.trim()
+        const valueParseResult = postSensorValueSchema.safeParse(
+          body.length > 0 ? JSON.parse(body) : undefined
         )
-      }
+        let value = true
+        if (valueParseResult.success) {
+          value = valueParseResult.data ?? true
+        } else {
+          console.warn(
+            `Invalid body for sensor value. Should be empty, true or false. Falling back to true. Was: ${body}`
+          )
+        }
 
+        const virtualSensorsByName = await getVirtualSensorsByName()
+        const sensorName = url.replace('/sensors/', '')
+        const sensor = virtualSensorsByName[sensorName]
+        if (!sensor) {
+          res.writeHead(400)
+          res.end('')
+          console.warn(`Sensor not recognised.`)
+          return
+        }
+
+        await updateSensorState({
+          sensorId: sensor.id,
+          value,
+        })
+        res.writeHead(200)
+        res.end()
+        console.log(`updated sensor ${sensorName} state`)
+      })
+      return
+    }
+
+    if (req.method === 'GET' && url.startsWith('/sensors')) {
       const virtualSensorsByName = await getVirtualSensorsByName()
       const sensorName = url.replace('/sensors/', '')
       const sensor = virtualSensorsByName[sensorName]
@@ -94,22 +121,26 @@ const server = http.createServer((req, res) => {
         return
       }
 
-      await updateSensorState({
+      const value = await getSensorState({
         sensorId: sensor.id,
-        value,
       })
       res.writeHead(200)
-      res.end()
-      console.log(`updated sensor ${sensorName} state`)
-    })
-    return
-  }
+      res.end(value.toString())
+      console.log(`Responded with sensor ${sensorName} state`)
 
-  res.writeHead(404)
-  res.end('')
-  console.warn(
-    `Rejected request to unsupported url/method ${req.url} ${req.method}`
-  )
+      return
+    }
+
+    res.writeHead(404)
+    res.end('')
+    console.warn(
+      `Rejected request to unsupported url/method ${req.url} ${req.method}`
+    )
+  } catch (err) {
+    res.writeHead(500)
+    res.end('Internal Server Error')
+    console.error(err)
+  }
 })
 
 export const startApi = () => {

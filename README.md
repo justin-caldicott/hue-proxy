@@ -68,3 +68,9 @@ npm publish
 ```sh
 sudo journalctl -b -u hue-proxy.service
 ```
+
+## Restart the service
+
+```sh
+sudo systemctl restart hue-proxy.service
+```
