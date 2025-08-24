@@ -1,5 +1,7 @@
 import * as z from 'zod'
 
+export const apiKeySchema = z.string().min(1)
+
 export const postSensorValueSchema = z.boolean().optional()
 
 export const configSchema = z.object({

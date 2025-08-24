@@ -1,7 +1,7 @@
 import http from 'http'
 import { parse } from 'yaml'
 import { getConfig, updateConfig } from './config'
-import { configSchema, postSensorValueSchema } from './types'
+import { apiKeySchema, configSchema, postSensorValueSchema } from './types'
 import { getVirtualSensorsByName, invalidateSensors } from './virtual-sensors'
 import {
   createSensor,
@@ -50,10 +50,20 @@ const server = http.createServer(async (req, res) => {
       return
     }
 
-    if (req.headers['apikey'] !== apiKey) {
+    if (
+      !Object.entries(req.headers).some(([key, value]) => {
+        if (key.toLowerCase().trim() !== 'authorization') return false
+        const valueParseResult = apiKeySchema.safeParse(value)
+        if (
+          valueParseResult.success &&
+          valueParseResult.data.toLowerCase().includes(apiKey)
+        )
+          return true
+      })
+    ) {
       res.writeHead(401)
       res.end('')
-      console.warn(`Rejected request to unrecognised apikey`)
+      console.warn(`Rejected request, unrecognised apikey`)
       return
     }
 
