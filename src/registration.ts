@@ -33,11 +33,11 @@ WantedBy=multi-user.target
 
     // TODO: Make this cross-platform, not just linux
     await exec('systemctl daemon-reload')
-    await exec('systemctl start hue-proxy')
+    await exec('systemctl enable --now hue-proxy') // enables and starts
 
     console.log('Background service registered')
   } else if (action === 'unregister') {
-    await exec('systemctl stop hue-proxy')
+    await exec('systemctl disable --now hue-proxy')
     fse.removeSync(serviceDefinitionPath)
     await exec('systemctl daemon-reload')
 

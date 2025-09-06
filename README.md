@@ -54,15 +54,6 @@ Please raise issues for any bugs/feature requests.
 
 Testing has been through actual use with a good number of sensors/devices. There are no automated tests yet. Can hopefully add some soonish.
 
-## Release process
-
-Update the version number in `package.json` and:
-
-```sh
-yarn build
-npm publish
-```
-
 ## Diagnose issues in the service
 
 ```sh
